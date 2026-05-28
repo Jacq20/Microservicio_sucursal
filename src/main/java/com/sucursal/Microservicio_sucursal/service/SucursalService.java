@@ -5,9 +5,11 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.sucursal.Microservicio_sucursal.DTO.SucursalDTO;
 import com.sucursal.Microservicio_sucursal.model.Sucursal;
+import com.sucursal.Microservicio_sucursal.model.UsuarioDTO;
 import com.sucursal.Microservicio_sucursal.repository.SucursalRepository;
 
 @Service
@@ -16,8 +18,19 @@ public class SucursalService {
     @Autowired
     private SucursalRepository sucursalRepository;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     public Sucursal gestionarSucursal(SucursalDTO dto) {
         try {
+            // Verificamos que el gerente existe en ms_usuarios
+            String url = "http://localhost:8089/api/usuarios/" + dto.getIdGerente();
+            UsuarioDTO gerente = restTemplate.getForObject(url, UsuarioDTO.class);
+
+            if (gerente == null) {
+                throw new RuntimeException("El gerente no existe en el sistema");
+            }
+
             Sucursal sucursal = new Sucursal();
             sucursal.setNombre(dto.getNombre());
             sucursal.setDireccion(dto.getDireccion());
